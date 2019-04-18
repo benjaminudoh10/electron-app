@@ -1,0 +1,3 @@
+What is the formula for pressure? ::: \(2\pi\,r\) ::: \(\frac{P_1V_1}{T_1}\) ::: 12 ::: 43 ::: \(\frac{P_1V_1}{T_1}\)
+What is the formula for linear expansivity? ::: \(2\pi\,r\) ::: \(\frac{P_1V_1}{T_1}\) ::: \(\frac{\delta L \times l_0}{\delta T}\) ::: 43 ::: \(\frac{\delta L \times l_0}{\delta T}\)
+The formula for the second law of equation is given as? ::: \(v^2 = u^2 + 2as\) ::: \(v = u + at\) ::: \(v = ut + \frac{1}{2}at^2\) ::: \(v = sxc\) ::: \(v = u + at\)

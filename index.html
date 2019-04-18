@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Pass exams</title>
+    <script>
+        window.nodeRequire = require
+        delete window.require
+        delete window.exports
+        delete window.module
+    </script>
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/angular/angular.min.js"></script>
+    <script src="bower_components/semantic/dist/semantic.js"></script>
+    <!-- <script type="text/javascript" src="./node_modules/mathjax-electron/MathJax-2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script> -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+    <link rel="stylesheet" href="bower_components/semantic/dist/semantic.min.css">
+    <style>
+        body {
+            background: blue;
+            background-image: linear-gradient(#7dc5ee,#008cdd 85%,#30a2e4);
+            font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+            padding: 50px;
+        }
+
+        #q-area {
+            border: 2px solid blue;
+            padding: 10px;
+        }
+
+        #setup-form {
+            padding: 15px;
+            padding-bottom: 55px;
+            border: 2px solid white;
+            border-radius: 5px;
+            margin-top: 40px;
+            box-shadow: 3px 3px 10px rgba(238, 237, 237, 0.685);
+        }
+
+        #setup {
+            color: white;
+        }
+
+        #setup .field>label {
+            color: white;
+        }
+
+        .ch-button {
+            background: #0000ff;
+            color: white;
+            padding: 10px;
+            float: right;
+            border-radius: 25px;
+            box-shadow: 5px 5px 10px 10px rgba(136, 186, 243, 0.685);
+        }
+
+        #summary {
+            background: white;
+        }
+
+        #summary .header {
+            background: blue;
+            padding: 15px;
+            color: white;
+        }
+
+        #summary .body {
+            padding: 15px;
+        }
+
+        table thead {
+            background: blue;
+            color: white;
+        }
+
+        #setup, #main, #summary, #paused, #review {
+            min-height: 100vh;
+        }
+    </style>
+</head>
+
+<body ng-app="home">
+    <div ng-controller="HomeCtrl">
+        <div class="ui stackable grid" id="setup">
+            <div class="four wide column"></div>
+            <div class="eight wide column">
+                <form class="ui form" id="setup-form">
+                    <h3>Test Selection</h3>
+                    <div class="inline field">
+                        <label style="width: 20%; text-align: right;">First Name</label>
+                        <input type="text" ng-model="firstName" placeholder="First name" />
+                    </div>
+                    <div class="inline field">
+                        <label style="width: 20%; text-align: right;">Last Name</label>
+                        <input type="text" ng-model="lastName" placeholder="Last name" />
+                    </div>
+                    <div class="inline field">
+                        <label style="width: 20%; text-align: right;">Test Type</label>
+                        <select class="ui dropdown" ng-model="testType">
+                            <option value="standard">Standard Test</option>
+                            <option value="speed">Speed Test</option>
+                        </select>
+                    </div>
+                    <div class="inline field">
+                        <label style="width: 20%; text-align: right;">Subject</label>
+                        <select class="ui dropdown" ng-model="subject">
+                            <option value="mathematics">Mathematics</option>
+                            <option value="english">English</option>
+                            <option value="physics">Physics</option>
+                            <option value="chemistry">Chemistry</option>
+                        </select>
+                    </div>
+                    <div class="inline field">
+                        <label style="width: 20%; text-align: right;">Test</label>
+                        <select class="ui dropdown" ng-model="test">
+                            <option value="standard">Mathematics_08_JQS</option>
+                            <option value="speed">Mathematics_09_JQS</option>
+                            <option value="speed">Mathematics_10_JQS</option>
+                            <option value="speed">Mathematics_11_JQS</option>
+                            <option value="speed">Mathematics_12_JQS</option>
+                            <option value="speed">Mathematics_13_JQS</option>
+                        </select>
+                    </div>
+                    <div class="inline field">
+                        <label style="width: 20%; text-align: right;">Duration</label>
+                        <select class="ui dropdown" ng-model="testDuration">
+                            <option value="600">10 Minutes</option>
+                            <option value="1800">30 Minutes</option>
+                            <option value="2700">45 Minutes</option>
+                            <option value="3600">1 Hour</option>
+                            <option value="7200">2 Hours</option>
+                            <option value="10800">3 Hours</option>
+                            <option value="12600">3 Hours 30 Minutes</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <button type="submit" class="ch-button">Start Test</button>
+                    </div>
+                </form>
+            </div>
+            <div class="four wide column"></div>
+        </div>
+        <div id="main">
+            <div class="title">
+                <p>Welcome, {{ lastName }} {{ firstName }}</p>
+                <img src="./image/logo.png" width="100px" height="30px">
+            </div>
+            <div class="ui stackable grid">
+                <div class="two wide column"></div>
+                <div class="twelve wide column">
+                    <div class="ui top attached tabular menu">
+                        <a class="item" data-tab="{{ subject }}" id="tab-{{ subject }}" ng-repeat="subject in subjects">
+                            {{ subject }}
+                        </a>
+                    </div>
+                    <div class="ui bottom attached tab segment" id="tabb-{{ subject }}" ng-repeat="subject in subjects"
+                        data-tab="{{ subject }}">
+                        <div id="tab-container">
+                            <label class="ui blue label">
+                                Question {{ currentIndex + 1 }} of {{ questions.length }}
+                            </label>
+                            <br>
+                            <div id="q-area">
+                                <h3 id="q-title" tex="currentQuestion" mathjax>{{ currentQuestion }}</h3>
+                                <div class="grouped fields" ng-repeat="option in currentOptions track by $index">
+                                    <div class="field">
+                                        <label class="ui blue small basic label">{{ optionLetter[$index] }}</label>
+                                        <input type="radio" class="hidden" value="{{ option.trim() }}" 
+                                            ng-model="answers[currentSubject][currentIndex]">
+                                        <label tex="currentOptions[$index]" mathjax>{{ option.trim() }}</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <br>
+                            <div>
+                                <button class="ui basic button" ng-click="prevQuestion()" ng-disabled="prevDisabled">
+                                    Previous
+                                </button>
+                                <button class="ui basic button" ng-click="nextQuestion()" ng-disabled="nextDisabled">
+                                    Next
+                                </button>
+                                <button class="ui basic blue button" style="float: right;">
+                                    Exit Test
+                                </button>
+                                <button class="ui basic blue button" style="float: right;">
+                                    Pause Test
+                                </button>
+                            </div>
+                            <br>
+                            <p style="text-align: center;">
+                                SuccessBox 2.0 &copy; {{ currentYear }}.
+                                Chroniclesoft. All Rights Reserved.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="two wide column"></div>
+            </div>
+        </div>
+        <div id="summary">
+            <div class="header">
+                <h3>SuccessBOX</h3>
+                <h4>Candidate's Performance Summary Report</h4>
+            </div>
+            <div class="body">
+                <select class="ui dropdown">
+                    <option value="" disabled>Select Subject</option>
+                    <option value="{{ subject.toLowerCase() }}" 
+                        ng-repeat="subject in subjects">{{ subject }}</option>
+                </select>
+                <p>Student Name: {{ firstName }} {{ lastName }}</p>
+                <table class="ui table">
+                    <thead>
+                        <tr>
+                            <th>S/N</th>
+                            <th>Subject</th>
+                            <th>Score (%)</th>
+                            <th>Test Type</th>
+                            <th>Total Questions</th>
+                            <th>Correctly Answered</th>
+                            <th>Wrongly Answered</th>
+                            <th>Test Date</th>
+                        </tr>
+                    </thead>
+                    <!--Include a high score panel (leaderboard)-->
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Mathematics</td>
+                            <td>93%</td>
+                            <td>Speed Test</td>
+                            <td>50 Questions</td>
+                            <td>47 Questions</td>
+                            <td>3 Questions</td>
+                            <td>24th April, 1995</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="8">
+                                <button style="float: right;" class="ui blue button">Close</button>
+                                <button style="float: right;" class="ui blue button">View Chart</button>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        <div id="paused">
+            <h1>Test Paused</h1>
+            <button class="ui green button">Resume</button>
+        </div>
+        <div id="review">
+            <div class="header">
+                <h3>Test Review</h3>
+                <h4>{{ currentSubject }}</h4>
+            </div>
+            <div class="body">
+                <div class="review">
+                    Question {{ currentIndex + 1 }} <button class="ui tiny blue button">Explain</button>
+                    <div class="content">
+                        <p tex="currentQuestion" mathjax>{{ currentQuestion }}</p>
+
+                        Answer:
+                        {{ currentAnswer }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    const fs = nodeRequire('fs')
+
+    angular.module('home', [])
+        .directive('mathjax', function () {
+            return {
+                restrict: 'EA',
+                link: function (scope, element, attrs) {
+                    scope.$watch(attrs.tex, function () {
+                        element.get(0).innerHTML = scope.$eval(attrs.tex)
+                        MathJax.Hub.Queue(['Typeset', MathJax.Hub, element.get(0)])
+                    })
+                }
+            }
+        })
+        .controller('HomeCtrl', ['$scope', '$timeout', '$interval',
+            function ($scope, $timeout, $interval) {
+                $scope.currentYear = new Date().getFullYear()
+                $scope.subjects = [
+                    'mathematics', 'english', 'physics', 'chemistry']
+                $scope.currentSubject = $scope.subjects[0]
+                $scope.optionLetter = ['A', 'B', 'C', 'D', 'E']
+
+                $scope.prevDisabled = true
+                $scope.nextDisabled = false
+
+                $timeout(function () {
+                    $('.menu .item').tab()
+                    $('#tab-' + $scope.currentSubject).addClass('active')
+                    $('#tabb-' + $scope.currentSubject).addClass('active')
+                    $('.ui.dropdown').dropdown()
+                })
+
+                $scope.getQuestions = function getQuestions(fileName) {
+                    fs.readFile(fileName, 'utf8', function (error, fileContents) {
+                        if (error) throw error
+                        $scope.questions = fileContents.split('\n')
+                        $scope.currentIndex = 0
+                        const splitContent =
+                            $scope.questions[$scope.currentIndex].split(':::')
+                        $scope.currentQuestion = splitContent[0]
+                        $scope.currentAnswer =
+                            splitContent[splitContent.length - 1].trim()
+                        $scope.currentOptions =
+                            splitContent.splice(1, splitContent.length - 2)
+                        $scope.nextDisabled = false
+                        $scope.prevDisabled = true
+                        $scope.$apply()
+                    })
+                }
+
+                $scope.currentIndex = 0
+                $scope.getQuestions('./questions/2018-' + $scope.currentSubject + '.txt')
+
+                const checkQuestion = $interval(function () {
+                    if ($scope.questions) {
+                        [$scope.currentQuestion, ...$scope.currentOptions] =
+                            $scope.questions[$scope.currentIndex].split(':::')
+                        $scope.currentAnswer = $scope.currentOptions.splice(
+                            $scope.currentOptions.length - 1, 1)[0].trim()
+                        $interval.cancel(checkQuestion)
+                    }
+                }, 50)
+
+                $scope.nextQuestion = function nextQuestion() {
+                    $scope.currentIndex++
+                    if ($scope.currentIndex >= $scope.questions.length - 1) {
+                        $scope.nextDisabled = true
+                        $scope.prevDisabled = false
+                        $scope.currentIndex = $scope.questions.length - 1
+                    }
+                    [$scope.currentQuestion, ...$scope.currentOptions] =
+                        $scope.questions[$scope.currentIndex].split(':::')
+                    $scope.currentAnswer = $scope.currentOptions.splice(
+                        $scope.currentOptions.length - 1, 1)[0]
+                }
+
+                $scope.prevQuestion = function prevQuestion() {
+                    $scope.currentIndex--
+                    if ($scope.currentIndex <= 0) {
+                        $scope.prevDisabled = true
+                        $scope.nextDisabled = false
+                        $scope.currentIndex = 0
+                    }
+                    [$scope.currentQuestion, ...$scope.currentOptions] =
+                        $scope.questions[$scope.currentIndex].split(':::')
+                    $scope.currentAnswer = $scope.currentOptions.splice(
+                        $scope.currentOptions.length - 1, 1)[0].trim()
+                }
+
+                $timeout(function () {
+                    $('.menu .item').on('click', function () {
+                        $scope.currentSubject = $(this).data('tab')
+                        $scope.getQuestions(
+                            './questions/2018-' + $(this).data('tab') + '.txt')
+                    })
+                })
+
+                $scope.answers = {
+                    'mathematics': [],
+                    'physics': []
+                }
+
+                window.scope = $scope
+            }
+        ])
+</script>
+
+</html>

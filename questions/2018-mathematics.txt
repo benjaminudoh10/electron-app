@@ -1,0 +1,2 @@
+What is the value of \(x^2 - 2x\) given that \(x = 5\). ::: 24 ::: 35 ::: 32 ::: 15
+What is meant by circumference of a circle? ::: \(2\pi\,r\) ::: 34 ::: 12 ::: 43

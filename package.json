@@ -1,0 +1,17 @@
+{
+  "name": "chronicles",
+  "version": "1.0.0",
+  "description": "Examination app",
+  "main": "index.js",
+  "dependencies": {
+    "electron": "^4.1.4",
+    "mathjax-electron": "^3.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "electron ./main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Benjamin Udoh",
+  "license": "ISC"
+}
